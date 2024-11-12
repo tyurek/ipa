@@ -7,6 +7,8 @@
 // because of performance implications which shouldn't be a concern for unit testing.
 #![cfg_attr(test, allow(clippy::disallowed_methods))]
 
+#![cfg_attr(feature = "flame_it", feature(proc_macro_hygiene))]
+
 #[cfg(any(feature = "cli", feature = "web-app"))]
 pub mod cli;
 #[cfg(feature = "web-app")]
@@ -34,6 +36,12 @@ pub mod sharding;
 mod utils;
 pub use app::{AppConfig, HelperApp, Setup as AppSetup};
 pub use utils::NonZeroU32PowerOfTwo;
+
+#[cfg(feature = "flame_it")]
+extern crate flame;
+#[cfg(feature = "flame_it")]
+#[macro_use]
+extern crate flamer;
 
 extern crate core;
 #[cfg(all(feature = "shuttle", test))]

@@ -653,6 +653,7 @@ impl Runner<NotSharded> for TestWorld<NotSharded> {
         .await
     }
 
+    //#[cfg_attr(feature = "flame_it", flame("world_malicious"))]
     async fn malicious<'a, I, A, O, H, R>(&'a self, input: I, helper_fn: H) -> [O; 3]
     where
         I: RunnerInput<NotSharded, A>,

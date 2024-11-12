@@ -30,6 +30,7 @@ compact-gate = []
 # It is enabled by default
 descriptive-gate = ["ipa-step/string-step"]
 disable-metrics = []
+flame_it = ["flame", "flamer"]
 # TODO move web-app to a separate crate. It adds a lot of build time to people who mostly write protocols
 # TODO Consider moving out benches as well
 web-app = [
@@ -115,6 +116,8 @@ dashmap = "5.4"
 delegate = "0.10.0"
 dhat = "0.3.2"
 embed-doc-image = "0.1.4"
+flame = { version = "0.2", optional = true }
+flamer = { version = "0.3", optional = true }
 futures = "0.3.28"
 futures-util = "0.3.28"
 generic-array = "1.0.0"

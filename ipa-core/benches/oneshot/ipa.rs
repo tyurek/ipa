@@ -3,8 +3,10 @@ use std::{
     num::{NonZeroU32, NonZeroUsize},
     time::Instant,
 };
+use std::fs::File;
 
 use clap::Parser;
+use flamer::flame;
 use ipa_core::{
     error::Error,
     ff::Fp32BitPrime,
@@ -106,6 +108,7 @@ impl Args {
     }
 }
 
+//#[cfg_attr(feature = "flame_it", flame("run oneshot ipa"))]
 async fn run(args: Args) -> Result<(), Error> {
     type BenchField = Fp32BitPrime;
 
@@ -164,9 +167,11 @@ async fn run(args: Args) -> Result<(), Error> {
         q = args.query_size,
         t = _protocol_time.elapsed()
     );
+    flame::dump_html(File::create("flamegraph.html").unwrap()).unwrap();
     Ok(())
 }
 
+//#[cfg_attr(feature = "flame_it", flame("main"))]
 fn main() -> Result<(), Error> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();

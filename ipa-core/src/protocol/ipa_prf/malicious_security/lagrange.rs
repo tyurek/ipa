@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use flamer::flame;
 use typenum::Unsigned;
 
 use crate::ff::{Field, PrimeField, Serializable};
@@ -100,6 +101,7 @@ where
     /// that were used to generate this table.
     /// It is assumed that the `y_coordinates` provided to this function correspond the values of the _input_ "x coordinates"
     /// that were used to generate this table.
+    #[cfg_attr(feature = "flame_it", flame("LagrangeEval"))]
     pub fn eval(&self, y_coordinates: &[F; N]) -> [F; M] {
         self.table
             .each_ref()
@@ -110,6 +112,7 @@ where
     ///
     /// ## Panics
     /// When the field size is too small for `N` evaluation points
+    #[cfg_attr(feature = "flame_it", flame)]
     fn compute_table_row(x_output: &F, denominator: &CanonicalLagrangeDenominator<F, N>) -> [F; N]
     where
         F: Field + TryFrom<u128>,
@@ -134,6 +137,7 @@ impl<F, const N: usize, const M: usize> From<CanonicalLagrangeDenominator<F, N>>
 where
     F: PrimeField,
 {
+    #[cfg_attr(feature = "flame_it", flame)]
     fn from(value: CanonicalLagrangeDenominator<F, N>) -> Self {
         // assertion that field is large enough
         // when it is large enough, `F::try_from().unwrap()` below does not panic

@@ -360,23 +360,28 @@ where
     BitDecomposed<AdditiveShare<Boolean, B>>:
         for<'a> TransposeFrom<&'a [AdditiveShare<HV>; B], Error = Infallible>,
 {
+    flame::start("oprf_ipa");
     if input_rows.is_empty() {
         return Ok(vec![Replicated::ZERO; B]);
     }
 
     // Apply DP padding for OPRF
+    // flame::start("oprf_ipa::padding");
     let padded_input_rows = apply_dp_padding::<_, OPRFIPAInputRow<BK, TV, TS>, B>(
         ctx.narrow(&Step::PaddingDp),
         input_rows,
         &dp_padding_params,
     )
     .await?;
+    //flame::end("oprf_ipa::padding");
 
+    //flame::start("oprf_ipa::shuffle_inputs");
     let shuffled = ctx
         .narrow(&Step::Shuffle)
         .shuffle(padded_input_rows)
         .instrument(info_span!("shuffle_inputs"))
         .await?;
+    //flame::end("oprf_ipa::shuffle_inputs");
     let mut prfd_inputs = compute_prf_for_inputs(ctx.clone(), &shuffled).await?;
 
     prfd_inputs.sort_by(|a, b| a.prf_of_match_key.cmp(&b.prf_of_match_key));
@@ -386,6 +391,7 @@ where
         // No user has more than one record.
         return Ok(vec![Replicated::ZERO; B]);
     }
+    //flame::start("oprf_ipa::sort_by_timestamp");
     quicksort_ranges_by_key_insecure(
         ctx.narrow(&Step::SortByTimestamp),
         &mut prfd_inputs,
@@ -394,6 +400,7 @@ where
         ranges,
     )
     .await?;
+    //flame::end("oprf_ipa::sort_by_timestamp");
 
     let output_histogram = attribute_cap_aggregate::<_, _, _, _, _, SS_BITS, B>(
         ctx.narrow(&Step::Attribution),
@@ -406,6 +413,7 @@ where
 
     let noisy_output_histogram =
         dp_for_histogram::<_, B, HV, SS_BITS>(ctx, output_histogram, dp_params).await?;
+    flame::end("oprf_ipa");
     Ok(noisy_output_histogram)
 }
 

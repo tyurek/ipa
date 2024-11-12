@@ -144,6 +144,7 @@ where
     /// Dummies need to be added at every possible cardinality of `match_key`s,
     /// e.g., we add sets of dummies with the same `match_key` at each possible cardinality.
     /// The number of sets at each cardinality is random, and determined by `padding_params`.
+    #[cfg_attr(feature = "flame_it", flame)]
     fn add_padding_items<VC: Extend<Self>, const B: usize>(
         direction_to_excluded_helper: Direction,
         padding_input_rows: &mut VC,
