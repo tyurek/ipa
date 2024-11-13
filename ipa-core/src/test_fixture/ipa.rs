@@ -180,8 +180,6 @@ where
 /// If any of the IPA protocol modules panic
 #[allow(clippy::too_many_lines)]
 #[cfg(feature = "in-memory-infra")]
-
-#[cfg_attr(feature = "flame_it", flame("test_oprf_ipa"))]
 pub async fn test_oprf_ipa<F>(
     world: &super::TestWorld,
     records: Vec<TestRawDataRecord>,

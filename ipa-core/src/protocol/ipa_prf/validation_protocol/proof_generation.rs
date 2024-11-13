@@ -80,6 +80,7 @@ impl ProofBatch {
     /// ## Panics
     /// Panics when the function fails to set the masks without overwritting `u` and `v` values.
     /// This only happens when there is an issue in the recursion.
+    #[cfg_attr(feature = "flame_it", flame)]
     pub fn generate<C, I>(
         ctx: &C,
         mut prss_record_ids: RecordIdRange,

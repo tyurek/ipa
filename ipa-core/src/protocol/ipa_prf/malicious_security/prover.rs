@@ -14,6 +14,8 @@ use crate::{
     },
 };
 
+use flamer::flame;
+
 /// This struct stores intermediate `uv` values.
 /// The storage format is compatible with further processing
 /// via a `ProofGenerator` with parameters `L` and `F`.
@@ -125,6 +127,7 @@ impl<F: PrimeField, const L: usize, const P: usize, const M: usize> ProofGenerat
     ///
     /// Distributed Zero Knowledge Proofs algorithm drawn from
     /// `https://eprint.iacr.org/2023/909.pdf`
+    #[cfg_attr(feature = "flame_it", flame)]
     pub fn compute_proof<J>(uv_iterator: J, lagrange_table: &LagrangeTable<F, L, M>) -> [F; P]
     where
         J: Iterator,
@@ -138,15 +141,18 @@ impl<F: PrimeField, const L: usize, const P: usize, const M: usize> ProofGenerat
             let p_extrapolated = lagrange_table.eval(&uv_polynomial.borrow().0);
             let q_extrapolated = lagrange_table.eval(&uv_polynomial.borrow().1);
 
+            flame::start("last part");
             for (i, (x, y)) in
                 zip(p_extrapolated.into_iter(), q_extrapolated.into_iter()).enumerate()
             {
                 proof[L + i] += x * y;
             }
+            flame::end("last part");
         }
         proof
     }
 
+    #[cfg_attr(feature = "flame_it", flame)]
     fn gen_challenge_and_recurse<J, const N: usize>(
         proof_left: &[F; P],
         proof_right: &[F; P],
@@ -213,6 +219,7 @@ impl<F: PrimeField, const L: usize, const P: usize, const M: usize> ProofGenerat
     /// where
     /// `share_of_proof_from_prover_left` from left has type `Vec<[F; P]>`,
     /// `my_proof_left_share` has type `Vec<[F; P]>`,
+    #[cfg_attr(feature = "flame_it", flame)]
     pub fn gen_artefacts_from_recursive_step<C, J, const N: usize>(
         ctx: &C,
         record_ids: &mut RecordIdRange,

@@ -84,6 +84,7 @@ where
 {
     /// generates a `CanonicalLagrangeTable` from `CanoncialLagrangeDenominators` for a single output point
     /// The "x coordinate" of the output point is `x_output`.
+    #[cfg_attr(feature = "flame_it", flame)]
     pub fn new(denominator: &CanonicalLagrangeDenominator<F, N>, x_output: &F) -> Self {
         // assertion that table is not too large for the stack
         assert!(<F as Serializable>::Size::USIZE * N < 2024);
