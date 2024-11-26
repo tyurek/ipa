@@ -1,5 +1,7 @@
 mod decrypt;
 mod encrypt;
+//mod hybrid_decrypt;
+mod hybrid_encrypt;
 
 pub use decrypt::DecryptArgs;
 pub use encrypt::EncryptArgs;
