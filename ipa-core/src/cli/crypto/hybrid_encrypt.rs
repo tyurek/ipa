@@ -127,11 +127,11 @@ mod tests {
             },
             TestHybridRecord::TestConversion {
                 match_key: 12345,
-                trigger_value: 5,
+                value: 5,
             },
             TestHybridRecord::TestConversion {
                 match_key: 68362,
-                trigger_value: 2,
+                value: 2,
             },
         ];
         let query_size = QuerySize::try_from(records.len()).unwrap();
