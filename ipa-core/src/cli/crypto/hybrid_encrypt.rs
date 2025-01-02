@@ -29,12 +29,11 @@ use crate::{
     test_fixture::hybrid::TestHybridRecord,
 };
 
-/// Encryptor takes 4 arguments: `report_id`, helper that the shares must be encrypted towards,
-/// AAD info, and the actual share ([`HybridReport`]) to encrypt.
+/// Encryptor takes 3 arguments: `report_id`, the shares ([`HybridReport`])
+/// to encrypt, and the AAD info to use for all provided shares.
 type EncryptorInput = (
     usize,
-    usize,
-    HybridReport<BreakdownKey, TriggerValue>,
+    [HybridReport<BreakdownKey, TriggerValue>; 3],
     HybridInfo,
 );
 /// Encryptor sends report id and encrypted bytes down to file worker to write those bytes
@@ -139,15 +138,19 @@ impl EncryptorPool {
                         std::thread::Builder::new()
                             .name(format!("encryptor-{i}"))
                             .spawn(move || {
-                                for (i, helper_id, report, info) in rx {
-                                    let key_registry = &key_registries[helper_id];
-                                    let output = report.encrypt(
-                                        DEFAULT_KEY_ID,
-                                        key_registry,
-                                        &info,
-                                        &mut thread_rng(),
-                                    )?;
-                                    file_writer[helper_id].send((i, output))?;
+                                // Assumes that the first, second, and third share should be
+                                // encrypted towards helper ids 0, 1, and 2 respectively
+                                for (i, reports, info) in rx {
+                                    for (helper_id, report) in reports.into_iter().enumerate() {
+                                        let key_registry = &key_registries[helper_id];
+                                        let output = report.encrypt(
+                                            DEFAULT_KEY_ID,
+                                            key_registry,
+                                            &info,
+                                            &mut thread_rng(),
+                                        )?;
+                                        file_writer[helper_id].send((i, output))?;
+                                    }
                                 }
 
                                 Ok(())
@@ -160,7 +163,7 @@ impl EncryptorPool {
         }
     }
 
-    pub fn encrypt_share(&mut self, report: EncryptorInput) -> UnitResult {
+    pub fn encrypt_shares(&mut self, report: EncryptorInput) -> UnitResult {
         let tx = &self.pool[self.next_worker].0;
         tx.send(report)?;
         self.next_worker = (self.next_worker + 1) % self.pool.len();
@@ -218,12 +221,8 @@ impl ReportWriter {
         shares: [HybridReport<BreakdownKey, TriggerValue>; 3],
         info: &HybridInfo,
     ) -> UnitResult {
-        for (i, share) in shares.into_iter().enumerate() {
-            //  todo: maybe a smart pointer to avoid cloning
-            self.encryptor_pool
-                .encrypt_share((report_id, i, share, info.clone()))?;
-        }
-
+        self.encryptor_pool
+            .encrypt_shares((report_id, shares, info.clone()))?;
         Ok(())
     }
 
